@@ -30,11 +30,12 @@ TIMEOUT = 10.0
 
 
 class OkexClientError(Exception):
-    pass
+    pass # i.e. fai niente
 
 
 class OkexBaseClient(object):
     def __init__(self, key, secret, proxies=None):
+        # costruttore
         self.URL = "{0:s}://{1:s}/{2:s}".format(PROTOCOL, HOST, VERSION)
         self.KEY = key
         self.SECRET = secret
@@ -47,13 +48,16 @@ class OkexBaseClient(object):
         Used in authentication
         """
         return str(int(time.time() * 1000))
+        # restituisce il tempo da epoch (i.e. 1/1/1970) in secondi arrotondato sottoforma di stringa
 
     def _build_parameters(self, parameters):
         # sort the keys so we can test easily in Python 3.3 (dicts are not
         # ordered)
-        keys = list(parameters.keys())
-        keys.sort()
+        keys = list(parameters.keys()) # trasforma in lista
+        keys.sort() # la ordina
         return '&'.join(["%s=%s" % (k, parameters[k]) for k in keys])
+        # esempio: se i parametri sono 'a','b','c' il risultato è:
+        # 1=a&2=b&3=c
 
     def url_for(self, path, path_arg=None, parameters=None):
         url = "%s/%s" % (self.URL, path)
@@ -66,13 +70,23 @@ class OkexBaseClient(object):
         if parameters:
             url = "%s?%s" % (url, self._build_parameters(parameters))
         return url
+        # è spiegato bene in inglese
 
     def _sign_payload(self, payload):
         sign = ''
         for key in sorted(payload.keys()):
             sign += key + '=' + str(payload[key]) +'&'
+            # aggiungo key1=payload1&key2=payload2&key2=payload2&
         data = sign+'secret_key='+self.SECRET
         return hashlib.md5(data.encode("utf8")).hexdigest().upper()
+        #hashlib permette di crittografare il messaggio per spedirlo
+        #MD5 è funzione hash crittografica
+        # nota: una funzione hash è una funzione che ti trasforma il valore in un altro
+        # se conosci la funzione, è facile ottenere il valore iniziale
+        # è utile sia per crittografia sia per organizzare le liste
+        #data.encode("utf8") significa qualsiasi carattere
+        #hexdigest è il digest in cifre esadecimali
+        #upper fa diventare tutto maiuscolo
 
     def _convert_to_floats(self, data):
         """
@@ -81,23 +95,31 @@ class OkexBaseClient(object):
         for key, value in data.items():
             data[key] = float(value)
         return data
+        # converte a float, ça va sans dire
 
     def _get(self, url, timeout=TIMEOUT):
         req = requests.get(url, timeout=timeout, proxies=self.PROXIES)
-        if req.status_code/100 != 2:
-            logging.error(u"Failed to request:%s %d headers:%s", url, req.status_code, req.headers)
+        # requests è un'apposita libreria per HTTP
+        # get ti crea la variabile req che puoi usare dopo
+        if req.status_code/100 != 2: # controlla lo status (status_code)
+            logging.error("Failed to request:%s %d headers:%s", url, req.status_code, req.headers)
+            # male male
         try:
             return req.json()
+            # l'oggetto json serve per caricare diversamente valori nulli, buoni o cattivi
         except Exception as e:
             logging.exception('Failed to GET:%s result:%s', url, req.text)
             raise e
+            # gestisci nel logging le eccezioni
+
+    #sono arrivato fin qua
 
     def _post(self, url, params=None, needsign=True, headers=None, timeout=TIMEOUT):
         req_params = {'api_key' : self.KEY}
         if params and needsign:
             req_params.update(params)
         req_params['sign'] = self._sign_payload(req_params)
-        
+
         req_headers = {
             "Content-type" : "application/x-www-form-urlencoded",
         }
@@ -105,6 +127,7 @@ class OkexBaseClient(object):
             req_headers.update(headers)
         logging.info("%s %s", req_headers, req_params)
 
+        #vedi sopra i commenti a questo procedimento usato per requests
         req = requests.post(url, headers=req_headers, data=urllib.urlencode(req_params), timeout=TIMEOUT, proxies=self.PROXIES)
         if req.status_code/100 != 2:
             logging.error(u"Failed to request:%s %d headers:%s", url, req.status_code, req.headers)
@@ -367,4 +390,3 @@ class OkexClient(OkexBaseClient):
         if size>0:
             params['size'] = size
         return self._get(self.url_for(PATH_DEPTH, parameters=params))
-
