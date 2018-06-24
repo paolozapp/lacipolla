@@ -1,0 +1,6 @@
+from binance.client import Client
+
+ws = binance.client.Client(api_key="ENTER-YOUR-API-HERE", api_secret="ENTER-YOUR-SECRET-KEY-HERE", requests_params=None)
+ws.get_all_tickers()
+
+#http://python-binance.readthedocs.io/en/latest/binance.html#module-binance.websockets
