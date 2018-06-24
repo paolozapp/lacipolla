@@ -1,0 +1,52 @@
+from bitmex_websocket import BitMEXWebsocket
+import logging
+import pandas as pd
+from time import sleep
+
+from time import gmtime, strftime
+crypto = ["XBTUSD","ADAM18","BCHM18","EOSM18","LTCM18","XRPM18"]
+lista=[]
+for i in crypto:
+        lista.append(pd.DataFrame(columns=['Date','LastPrice']))
+#XBTUSD
+ws = BitMEXWebsocket(endpoint="https://testnet.bitmex.com/api/v1", symbol= "XBTUSD",
+                        api_key="PxM_QvxTCsT1Oq-xsLNz9j53", api_secret="eNEXla82ZOOvGqEazeJA8mg10lzIcopD_WOF5YKwt3rQmQ-m")
+
+LastPrice =ws.get_instrument()['lastPrice']
+date =strftime("%a, %d/%m/%Y, %H:%M:%S", gmtime())
+row = pd.DataFrame([[date,LastPrice]],columns=['Date','LastPrice'])
+lista[0]= lista[0].append(row)
+#ADAM18
+ws = BitMEXWebsocket(endpoint="https://testnet.bitmex.com/api/v1", symbol= "ADAM18",
+                        api_key="PxM_QvxTCsT1Oq-xsLNz9j53", api_secret="eNEXla82ZOOvGqEazeJA8mg10lzIcopD_WOF5YKwt3rQmQ-m")
+
+LastPrice =ws.get_instrument()['lastPrice']
+row = pd.DataFrame([[date,LastPrice]],columns=['Date','LastPrice'])
+lista[1]= lista[1].append(row)
+
+#BCHM18
+ws = BitMEXWebsocket(endpoint="https://testnet.bitmex.com/api/v1", symbol= "BCHM18",
+                        api_key="PxM_QvxTCsT1Oq-xsLNz9j53", api_secret="eNEXla82ZOOvGqEazeJA8mg10lzIcopD_WOF5YKwt3rQmQ-m")
+
+LastPrice =ws.get_instrument()['lastPrice']
+row = pd.DataFrame([[date,LastPrice]],columns=['Date','LastPrice'])
+lista[2]= lista[2].append(row)
+
+#EOSM18
+ws = BitMEXWebsocket(endpoint="https://testnet.bitmex.com/api/v1", symbol= "EOSM18",
+                        api_key="PxM_QvxTCsT1Oq-xsLNz9j53", api_secret="eNEXla82ZOOvGqEazeJA8mg10lzIcopD_WOF5YKwt3rQmQ-m")
+
+LastPrice =ws.get_instrument()['lastPrice']
+row = pd.DataFrame([[date,LastPrice]],columns=['Date','LastPrice'])
+lista[3]= lista[3].append(row)
+
+print(lista)
+
+## HOW TO CREATE A CSV
+print(lista[1])
+replicate = 5
+with open ("output_data"+str(replicate)+".csv","w") as out_file:
+    for i in range(len(lista)):
+        out_string = ""
+        out_string+=str(lista[i])+","
+        out_file.write(out_string)
